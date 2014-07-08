@@ -164,6 +164,17 @@ public class JmsConnector {
     }
 
     /**
+     * Call this to pull a message off the queue. Does not block.
+     * Returns null if there's nothing in the queue.
+     * Returned Message may be of type TextMessage, MapMessage, etc.
+     */
+    public Message consumeNoWait() throws NamingException, JMSException {
+
+        validateConsumer();
+        return consumer.receiveNoWait();
+    }
+
+    /**
      * Send a text message over the queue.
      */
     public void sendTextMessage(String text) throws NamingException, JMSException {
