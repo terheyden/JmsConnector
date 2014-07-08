@@ -233,6 +233,9 @@ public class JmsConnector {
         mapMessage = null;
     }
 
+    /**
+     * When building a map message, make sure they're calling the build methods in order...
+     */
     private void validateMapMessage() {
         if (mapMessage == null) {
             throw new RuntimeException("You must call startMapMessage() before calling addMap() methods or sendMapMessage().");
@@ -244,8 +247,35 @@ public class JmsConnector {
 
     /**
      * Must finally call this to clean up resources.
+     * This method is idempotent.
      */
     public void close() {
+
+        // Quietly try to close all the things.
+
+        if (producer != null) {
+            try {
+                producer.close();
+            } catch (Exception e) {
+                // Ignore.
+            }
+        }
+
+        if (consumer != null) {
+            try {
+                consumer.close();
+            } catch (Exception e) {
+                // Ignore.
+            }
+        }
+
+        if (session != null) {
+            try {
+                session.close();
+            } catch (Exception e) {
+                // Ignore.
+            }
+        }
 
         if (connection != null) {
             try {
@@ -262,5 +292,16 @@ public class JmsConnector {
                 // Ignore.
             }
         }
+
+        // Let's reset everything in case the caller wants to try to reconnect if something fails.
+        // Nulling these out means we'll retry to lazy-load.
+
+        jndi = null;
+        conFactory = null;
+        connection = null;
+        session = null;
+        destination = null;
+        producer = null;
+        consumer = null;
     }
 }
